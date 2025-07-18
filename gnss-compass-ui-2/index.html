@@ -1,1 +1,49 @@
-<!-- index.html 内容は省略 -->
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GNSS Compass UI</title>
+  <link href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+  <script src="utm.min.js"></script>
+  <script src="app.js" defer></script>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100">
+  <div class="max-w-screen-xl mx-auto p-2">
+    <div class="tabs flex space-x-2 mb-2">
+      <button id="tabMap" class="tab bg-blue-500 text-white px-4 py-2 rounded">地図</button>
+      <button id="tabControl" class="tab bg-gray-300 text-black px-4 py-2 rounded">制御</button>
+    </div>
+    <div id="tabContent">
+      <div id="mapPanel" class="block">
+        <div id="map" class="w-full h-[70vh] rounded-xl shadow"></div>
+        <div id="infoPanel" class="grid grid-cols-1 md:grid-cols-3 gap-2 mt-4 text-sm">
+          <div><span data-label-ja="現在地" data-label-en="Position">現在地</span>: <span id="latlng">--</span></div>
+          <div><span data-label-ja="UTM" data-label-en="UTM">UTM</span>: <span id="utm">--</span></div>
+          <div><span data-label-ja="方位角" data-label-en="Heading">方位角</span>: <span id="heading">--</span></div>
+          <div><span data-label-ja="GPS状態" data-label-en="GPS Status">GPS状態</span>: <span id="gpsStatus">--</span></div>
+          <div>
+            <label><input type="checkbox" id="useOfflineTiles"> タイルキャッシュ</label>
+          </div>
+          <div>
+            <label><span data-label-ja="扇形角度" data-label-en="Sector Angle">扇形角度</span>: <span id="angleVal">60</span>°</label>
+            <input type="range" id="sectorAngle" min="10" max="180" value="60" oninput="document.getElementById('angleVal').textContent = this.value">
+          </div>
+          <div>
+            <button id="toggleUTM" class="bg-gray-200 px-2 py-1 rounded">UTM ⇆ 緯度経度</button>
+            <button id="toggleLang" class="bg-gray-200 px-2 py-1 rounded ml-2">🌐 言語</button>
+            <button id="toggleSim" class="bg-yellow-300 px-2 py-1 rounded ml-2">シミュレーター起動</button>
+          </div>
+        </div>
+      </div>
+      <div id="controlPanel" class="hidden">
+        <h2 class="text-xl font-bold mb-2">制御・グラフ</h2>
+        <p>未実装です。</p>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
