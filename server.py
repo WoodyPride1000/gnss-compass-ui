@@ -1,11 +1,12 @@
+import eventlet
+eventlet.monkey_patch()
+
 from flask import Flask, render_template, send_from_directory
 from flask_socketio import SocketIO
-import eventlet
+
 import serial
 import threading
 import time
-
-eventlet.monkey_patch()
 
 app = Flask(__name__, static_url_path='', static_folder='.')
 socketio = SocketIO(app, cors_allowed_origins='*')
