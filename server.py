@@ -71,8 +71,16 @@ def index():
 def connect():
     print('Client connected')
 
+#def emit_gnss():
+#    while True:
+#        socketio.emit('gnss', gnss_data)
+#        socketio.sleep(1)
+
 def emit_gnss():
     while True:
+        # heading が欠損している場合は 0.0 を補完
+        if 'heading' not in gnss_data:
+            gnss_data['heading'] = 0.0
         socketio.emit('gnss', gnss_data)
         socketio.sleep(1)
 
