@@ -2,7 +2,7 @@
 
 let useUTM = false;
 let currentLang = 'ja';
-let selfLatLng = [35.681236, 139.767125];
+let selfLatLng = [35.681236, 139.767125]; // 東京駅
 let headingDeg = 90;
 let debugMode = true;
 let userMarker, headingLine, sectorPath;
@@ -14,6 +14,51 @@ let routePoints = [];
 
 const debugLog = (...args) => debugMode && console.log('[DEBUG]', ...args);
 
+// 🌍 地図初期化（東京駅）
+const map = L.map('map').setView(selfLatLng, 16);
+L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  attribution: '© OpenStreetMap contributors',
+  maxZoom: 19
+}).addTo(map);
+
+// 🧭 自己位置マーカーと方位線更新
+function animateMarkerTo(latlng) {
+  if (!userMarker) {
+    userMarker = L.marker(latlng).addTo(map);
+  } else {
+    userMarker.setLatLng(latlng);
+  }
+}
+
+function updateHeadingVisuals() {
+  const angleRad = (headingDeg - 90) * (Math.PI / 180);
+  const length = map.getSize().y * 0.3; // 地図縦の30%
+  const dx = length * Math.cos(angleRad) * 0.00000899;
+  const dy = length * Math.sin(angleRad) * 0.0000111;
+  const target = [selfLatLng[0] + dy, selfLatLng[1] + dx];
+  if (headingLine) {
+    headingLine.setLatLngs([selfLatLng, target]);
+  } else {
+    headingLine = L.polyline([selfLatLng, target], { color: 'green', dashArray: '5, 5' }).addTo(map);
+  }
+}
+
+// 扇形表示
+function drawSector() {
+  if (sectorPath) map.removeLayer(sectorPath);
+  const radius = map.getSize().y * 0.2 * 0.00001;
+  const angle = headingDeg;
+  const span = 30; // デフォルト30度
+  const points = [selfLatLng];
+  for (let a = -span / 2; a <= span / 2; a += 5) {
+    const rad = (angle + a - 90) * Math.PI / 180;
+    const dx = radius * Math.cos(rad);
+    const dy = radius * Math.sin(rad);
+    points.push([selfLatLng[0] + dy, selfLatLng[1] + dx]);
+  }
+  sectorPath = L.polygon(points, { color: 'orange', fillOpacity: 0.2 }).addTo(map);
+}
+
 function updateSelfPosDisplay() {
   document.getElementById('latlng').textContent = `${selfLatLng[0].toFixed(6)}, ${selfLatLng[1].toFixed(6)}`;
   if (useUTM && window.UTM) {
@@ -23,6 +68,27 @@ function updateSelfPosDisplay() {
     document.getElementById('utm').textContent = `--`;
   }
 }
+
+// 🌐 表示更新処理（GNSSまたはシミュレーションで使用）
+function updatePosition(lat, lng, heading) {
+  selfLatLng = [lat, lng];
+  headingDeg = heading;
+  updateSelfPosDisplay();
+  animateMarkerTo(selfLatLng);
+  updateHeadingVisuals();
+  drawSector();
+  document.getElementById('heading').textContent = `${headingDeg.toFixed(1)}°`;
+  document.getElementById('gpsStatus').textContent = 'LIVE';
+}
+
+// 🌐 Socket.IO 受信（リアルGNSS）
+const socket = io();
+socket.on('gnss', (data) => {
+  updatePosition(data.lat, data.lng, data.heading ?? 0.0);
+  if (map.getCenter().lat === 35.681236 && map.getCenter().lng === 139.767125) {
+    map.setView([data.lat, data.lng], 16); // 初回のみ地図中心を移動
+  }
+});
 
 document.getElementById('toggleUTM').addEventListener('click', () => {
   useUTM = !useUTM;
@@ -39,7 +105,6 @@ document.getElementById('toggleLang').addEventListener('click', () => {
 // 🧪 シミュレータON/OFFトグル
 let simulatorMode = false;
 let simulatorTimer = null;
-
 document.getElementById('toggleSim').addEventListener('click', () => {
   simulatorMode = !simulatorMode;
   document.getElementById('toggleSim').textContent = simulatorMode ? 'シミュレーター停止' : 'シミュレーター起動';
@@ -48,11 +113,7 @@ document.getElementById('toggleSim').addEventListener('click', () => {
       const lat = selfLatLng[0] + (Math.random() - 0.5) * 0.00005;
       const lng = selfLatLng[1] + (Math.random() - 0.5) * 0.00005;
       headingDeg = (headingDeg + 5) % 360;
-      selfLatLng = [lat, lng];
-      updateSelfPosDisplay();
-      animateMarkerTo([lat, lng]);
-      updateHeadingVisuals();
-      document.getElementById('heading').textContent = `${headingDeg.toFixed(1)}°`;
+      updatePosition(lat, lng, headingDeg);
       document.getElementById('gpsStatus').textContent = 'SIMULATED';
       sessionLog.push({ t: Date.now(), lat, lng, heading: headingDeg });
     }, 1000);
@@ -71,12 +132,7 @@ fileInput?.addEventListener('change', async (e) => {
   const playNext = () => {
     if (i >= lines.length) return;
     const [ts, lat, lng, heading] = lines[i++].split(',');
-    selfLatLng = [parseFloat(lat), parseFloat(lng)];
-    headingDeg = parseFloat(heading);
-    updateSelfPosDisplay();
-    animateMarkerTo(selfLatLng);
-    updateHeadingVisuals();
-    document.getElementById('heading').textContent = `${headingDeg.toFixed(1)}°`;
+    updatePosition(parseFloat(lat), parseFloat(lng), parseFloat(heading));
     setTimeout(playNext, 1000);
   };
   playNext();
@@ -86,7 +142,6 @@ fileInput?.addEventListener('change', async (e) => {
 window.addEventListener('beforeunload', () => {
   localStorage.setItem('gnss-session-log', JSON.stringify(sessionLog));
 });
-
 document.getElementById('downloadLog')?.addEventListener('click', () => {
   const csv = sessionLog.map(r => `${r.t},${r.lat},${r.lng},${r.heading}`).join('\n');
   const blob = new Blob([csv], { type: 'text/csv' });
@@ -97,24 +152,8 @@ document.getElementById('downloadLog')?.addEventListener('click', () => {
   a.click();
 });
 
-// 地図初期化（グローバルに map を定義）
-let map = L.map('map').setView([35.681236, 139.767125], 16);
-L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-  attribution: '© OpenStreetMap contributors',
-  maxZoom: 19,
-}).addTo(map);
-
-// 地図クリックでルート記録
-map.on('click', (e) => {
-  const latlng = e.latlng;
-  routePoints.push(latlng);
-  L.circleMarker(latlng, { radius: 4, color: 'purple' }).addTo(map);
-});
-
-
-
 // 🧠 地図クリックでルート記録
-map?.on('click', (e) => {
+map.on('click', (e) => {
   const latlng = e.latlng;
   routePoints.push(latlng);
   L.circleMarker(latlng, { radius: 4, color: 'purple' }).addTo(map);
