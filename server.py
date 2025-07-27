@@ -41,11 +41,23 @@ def read_gnss():
     except Exception as e:
         print(f"[ERROR] GNSS read failed: {e}")
 
+#def convert_to_decimal(value, direction):
+#    if not value or len(value) < 4:
+#        return 0.0
+#    degrees = int(value[:2])
+#    minutes = float(value[2:])
+#    decimal = degrees + minutes / 60.0
+#    if direction in ['S', 'W']:
+#        decimal *= -1
+#    return decimal
+
 def convert_to_decimal(value, direction):
     if not value or len(value) < 4:
         return 0.0
-    degrees = int(value[:2])
-    minutes = float(value[2:])
+    dot = value.find('.')
+    degrees_len = dot - 2
+    degrees = int(value[:degrees_len])
+    minutes = float(value[degrees_len:])
     decimal = degrees + minutes / 60.0
     if direction in ['S', 'W']:
         decimal *= -1
