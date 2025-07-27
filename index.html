@@ -4,22 +4,33 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>GNSS Compass UI</title>
+  
+  <!-- Leaflet CSS -->
   <link href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css" rel="stylesheet" />
-  <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
-  <script src="utm.min.js"></script>
-  <script src="app.js" defer></script>
+  
+  <!-- Tailwind CSS -->
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+
+  <style>
+    #map {
+      height: 70vh;
+    }
+  </style>
 </head>
 <body class="bg-gray-100">
   <div class="max-w-screen-xl mx-auto p-2">
+    <!-- タブ -->
     <div class="tabs flex space-x-2 mb-2">
       <button id="tabMap" class="tab bg-blue-500 text-white px-4 py-2 rounded">地図</button>
       <button id="tabControl" class="tab bg-gray-300 text-black px-4 py-2 rounded">制御</button>
     </div>
+
+    <!-- タブコンテンツ -->
     <div id="tabContent">
+      <!-- 地図パネル -->
       <div id="mapPanel" class="block">
-        <div id="map" class="w-full h-[70vh] rounded-xl shadow"></div>
+        <div id="map" class="w-full rounded-xl shadow"></div>
+
         <div id="infoPanel" class="grid grid-cols-1 md:grid-cols-3 gap-2 mt-4 text-sm">
           <div><span data-label-ja="現在地" data-label-en="Position">現在地</span>: <span id="latlng">--</span></div>
           <div><span data-label-ja="UTM" data-label-en="UTM">UTM</span>: <span id="utm">--</span></div>
@@ -39,11 +50,25 @@
           </div>
         </div>
       </div>
+
+      <!-- 制御パネル -->
       <div id="controlPanel" class="hidden">
         <h2 class="text-xl font-bold mb-2">制御・グラフ</h2>
         <p>未実装です。</p>
       </div>
     </div>
   </div>
+
+  <!-- Leaflet JS -->
+  <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <!-- socket.io -->
+  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+
+  <!-- UTM変換（オフラインの場合はローカルJSに変更） -->
+  <script src="utm.min.js"></script>
+
+  <!-- アプリ本体 -->
+  <script src="app.js" defer></script>
 </body>
 </html>
