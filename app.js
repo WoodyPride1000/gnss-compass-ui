@@ -97,6 +97,22 @@ document.getElementById('downloadLog')?.addEventListener('click', () => {
   a.click();
 });
 
+// 地図初期化（グローバルに map を定義）
+let map = L.map('map').setView([35.681236, 139.767125], 16);
+L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  attribution: '© OpenStreetMap contributors',
+  maxZoom: 19,
+}).addTo(map);
+
+// 地図クリックでルート記録
+map.on('click', (e) => {
+  const latlng = e.latlng;
+  routePoints.push(latlng);
+  L.circleMarker(latlng, { radius: 4, color: 'purple' }).addTo(map);
+});
+
+
+
 // 🧠 地図クリックでルート記録
 map?.on('click', (e) => {
   const latlng = e.latlng;
