@@ -77,7 +77,7 @@ if __name__ == "__main__":
         sys.exit(1)
 
     print("\n送信するコマンドを選択してください:")
-    print("1. NMEA GPGGAメッセージを1秒ごとに出力 (推奨初期設定)")
+    print("1. NMEA GNGGAメッセージを1秒ごとに出力 (推奨初期設定)")
     print("2. カスタムコマンドを入力")
     
     choice = input("選択 (1または2): ").strip()
@@ -87,7 +87,7 @@ if __name__ == "__main__":
         # UnicoreモジュールでNMEA GGAメッセージを1秒ごとに出力する一般的なコマンド
         # マニュアル (Unicore Reference Commands Manual) を参照し、正確なコマンドを確認してください。
         # 例: LOG GPGGA ONTIME 1.0
-        command_to_send = "LOG GPGGA ONTIME 1.0" 
+        command_to_send = "LOG GNGGA ONTIME 1.0" 
         print(f"選択されたコマンド: '{command_to_send}'")
     elif choice == '2':
         command_to_send = input("送信するカスタムコマンドを入力してください: ").strip()
@@ -104,7 +104,7 @@ if __name__ == "__main__":
         if responses:
             print("\n--- コマンド送信後のモジュール応答サマリー ---")
             for res in responses:
-                if "$GPGGA" in res or "$GPRMC" in res:
+                if "$GNGGA" in res or "$GNRMC" in res:
                     print(f"NMEAメッセージを検出しました: {res[:50]}...") # 最初の50文字を表示
                     print("NMEA出力が正常に有効になった可能性があります。")
                     break
